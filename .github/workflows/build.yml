@@ -26,14 +26,6 @@ jobs:
           SPRING_PROFILES_ACTIVE: test
         run: mvn -B clean verify # สั่งให้ Maven รัน clean, compile, และรัน Tests ทั้งหมด (Unit และ Integration)
 
-      - name: Run Integration Tests (Requires DB Connection)
-        env:
-          # กำหนด Environment Variables ให้ Spring Boot เชื่อมต่อ DB ที่สร้างใน Action
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/shopapp_db
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: testpassword
-        run: mvn test
-
       - name: Docker Login (ถ้าคุณจะ Deploy จริงจัง)
         # ส่วนนี้จะใช้สำหรับขั้นตอนการสร้างและ Push Docker Image (ขั้นตอนต่อไป)
         if: success()
