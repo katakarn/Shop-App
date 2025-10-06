@@ -19,8 +19,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("test")
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc // สำหรับใช้ MockMvc
 @Transactional // ทุก test จะถูก rollback หลังจบการทำงาน (ไม่กระทบ DB จริง)
 class ProductControllerIntegrationTest {
