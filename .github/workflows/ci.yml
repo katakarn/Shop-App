@@ -8,24 +8,37 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # ใช้ Ubuntu เป็น OS สำหรับรัน
-    
+  test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4 # 1. Checkout โค้ด
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          java-version: '21'
           distribution: 'temurin'
+          java-version: '21'
           cache: maven # ใช้ Maven Cache เพื่อเร่งความเร็ว
-
-      - name: Run Unit Tests and Build with Maven
+      - name: Run tests
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: mvn -B clean verify # สั่งให้ Maven รัน clean, compile, และรัน Tests ทั้งหมด (Unit และ Integration)
+        run: mvn -B test
 
+  build:
+    runs-on: ubuntu-latest # ใช้ Ubuntu เป็น OS สำหรับรัน
+    needs: test # รันต่อเมื่อ test เขียวเท่านั้น
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+      - name: Package
+        run: mvn -B -DskipTests verify
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # รันต่อเมื่อ build เขียวเท่านั้น
+    steps:
       - name: Docker Login (ถ้าคุณจะ Deploy จริงจัง)
         # ส่วนนี้จะใช้สำหรับขั้นตอนการสร้างและ Push Docker Image (ขั้นตอนต่อไป)
         if: success()
