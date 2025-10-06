@@ -22,18 +22,9 @@ jobs:
           cache: maven # ใช้ Maven Cache เพื่อเร่งความเร็ว
 
       - name: Run Unit Tests and Build with Maven
-        run: mvn clean verify # สั่งให้ Maven รัน clean, compile, และรัน Tests ทั้งหมด (Unit และ Integration)
-      
-      # -----------------------------------------------------------
-      # การตั้งค่าสำหรับ Integration Test ที่ต้องใช้ Database
-      # -----------------------------------------------------------
-      - name: Start PostgreSQL Database
-        uses: harmon758/postgresql-action@v1.0.0
-        with:
-          postgresql username: postgres
-          postgresql password: testpassword
-          postgresql database: shopapp_db
-          postgresql port: 5432
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: mvn -B clean verify # สั่งให้ Maven รัน clean, compile, และรัน Tests ทั้งหมด (Unit และ Integration)
 
       - name: Run Integration Tests (Requires DB Connection)
         env:
