@@ -5,3 +5,4 @@ target/
 .DS_Store
 # Maven
 .mvn/wrapper/maven-wrapper.jar
+src/main/resources/application.properties

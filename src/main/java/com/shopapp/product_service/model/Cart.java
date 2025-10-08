@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Cart {
     // รายการสินค้าในตะกร้า (One-to-Many)
     // "mappedBy" ชี้ไปที่ field ใน CartItem ที่ผูกกับ Cart นี้
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> items;
+    private List<CartItem> items  = new ArrayList<>();
 
     // เราไม่จำเป็นต้องเก็บราคารวมใน Entity นี้ เพราะสามารถคำนวณได้
 }

@@ -41,7 +41,7 @@ public class AuthenticationController {
 
         userRepository.save(user);
 
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(user.getEmail());
         return ResponseEntity.ok(new AuthenticationResponse(jwtToken));
     }
 
@@ -58,7 +58,7 @@ public class AuthenticationController {
         var user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("User not found after successful auth"));
 
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(user.getEmail());
         return ResponseEntity.ok(new AuthenticationResponse(jwtToken));
     }
 }

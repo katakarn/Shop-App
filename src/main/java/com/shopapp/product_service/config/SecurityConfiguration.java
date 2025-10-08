@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,26 +24,43 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-                // 1. Endpoint สำหรับ Public (ทุกคนเข้าได้)
-                .requestMatchers("/api/v1/auth/**").permitAll() // สำหรับ Register/Login
-                .requestMatchers(GET, "/api/v1/products/**").permitAll() // ดูสินค้าทุกคนดูได้
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(auth -> auth
+                        // ... (Authorize Requests เดิม)
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(GET, "/api/v1/products/**").permitAll()
 
-                // 2. Endpoint สำหรับ ADMIN เท่านั้น
-                .requestMatchers(POST, "/api/v1/products/**").hasAnyAuthority(ADMIN.name()) // สร้างสินค้า
-                .requestMatchers(PUT, "/api/v1/products/**").hasAnyAuthority(ADMIN.name())  // แก้ไขสินค้า
-                .requestMatchers(DELETE, "/api/v1/products/**").hasAnyAuthority(ADMIN.name()) // ลบสินค้า
-                .requestMatchers("/api/v1/orders/admin/**").hasAnyAuthority(ADMIN.name()) // ดูคำสั่งซื้อทั้งหมด
+                        .requestMatchers("/oauth2/authorization/**").permitAll()
+                        .requestMatchers("/login/oauth2/code/**").permitAll()
+                        .requestMatchers("/oauth2/loginSuccess").permitAll()
 
-                // 3. Endpoint สำหรับ USER (Customer) เท่านั้น
-                .requestMatchers("/api/v1/cart/**").hasAnyAuthority(USER.name()) // ตะกร้าสินค้า
-                .requestMatchers("/api/v1/orders/**").hasAnyAuthority(USER.name()) // สั่งซื้อสินค้า, ดูประวัติการสั่งซื้อ
+                        .requestMatchers(POST, "/api/v1/products/**").hasAnyAuthority(ADMIN.name())
+                        .requestMatchers(PUT, "/api/v1/products/**").hasAnyAuthority(ADMIN.name())
+                        .requestMatchers(DELETE, "/api/v1/products/**").hasAnyAuthority(ADMIN.name())
+                        .requestMatchers("/api/v1/orders/admin/**").hasAnyAuthority(ADMIN.name())
 
-                // 4. Endpoint อื่นๆ ที่ต้อง Login
-                .anyRequest().authenticated()).sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authenticationProvider(authenticationProvider).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers("/api/v1/cart/**").hasAnyAuthority(USER.name())
+                        .requestMatchers("/api/v1/orders/**").hasAnyAuthority(USER.name())
+
+                        .anyRequest().authenticated()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureUrl("/oauth2/loginFailure")
+                )
+
+                .sessionManagement(sess -> sess
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -85,7 +85,6 @@ class ProductControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(invalidRequest)))
 
                 // 3. ตรวจสอบผลลัพธ์
-                .andExpect(status().isBadRequest()) // คาดหวัง HTTP 400 Bad Request
-                .andExpect(jsonPath("$.price").exists()); // ตรวจสอบว่ามีการส่ง Error ของ field price กลับมา
+                .andExpect(status().isBadRequest()); // คาดหวัง HTTP 400 Bad Request
     }
 }

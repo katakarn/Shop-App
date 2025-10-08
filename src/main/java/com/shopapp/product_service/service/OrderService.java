@@ -22,6 +22,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
     private final ProductRepository productRepository;
+    private final PaymentService paymentService;
 
     private OrderResponse mapToOrderResponse(Order order) {
         return new OrderResponse(
@@ -75,7 +76,7 @@ public class OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
         order.setTotalAmount(totalAmount);
 
         // บันทึก Order หลักก่อน
@@ -102,6 +103,9 @@ public class OrderService {
         cartService.getOrCreateCart(user); // บันทึกการเปลี่ยนแปลงตะกร้า
         orderRepository.save(savedOrder); // บันทึก Order อีกครั้งพร้อม OrderItems
         //cartRepository.save(cart);
+
+        // 6. ส่ง Order เข้าสู่กระบวนการชำระเงิน (Asynchronous)
+        paymentService.processPayment(savedOrder.getId());
 
         return mapToOrderResponse(savedOrder);
     }

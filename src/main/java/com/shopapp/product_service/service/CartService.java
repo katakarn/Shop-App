@@ -2,6 +2,7 @@ package com.shopapp.product_service.service;
 
 import com.shopapp.product_service.dto.CartItemDto;
 import com.shopapp.product_service.dto.CartResponse;
+import com.shopapp.product_service.exception.ResourceNotFoundException;
 import com.shopapp.product_service.model.*;
 import com.shopapp.product_service.model.user.User;
 import com.shopapp.product_service.repository.*;
@@ -102,8 +103,7 @@ public class CartService {
 
         // ค้นหารายการสินค้าที่จะลบ
         CartItem itemToDelete = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
-                .orElseThrow(() -> new RuntimeException("Item not found in cart"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found in cart"));
         cartItemRepository.delete(itemToDelete);
 
         // โหลด Cart อีกครั้ง

@@ -44,21 +44,22 @@ public class JwtService {
         return resolver.apply(claims);
     }
 
-    public String generateToken(UserDetails user) {
-        return generateToken(Map.of(), user);
+    public String generateToken(String subject) {
+        return generateToken(Map.of(), subject);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails user) {
+    // ใช้กับ OAuth2: ใส่ชื่อ/claims อื่น ๆ ได้
+    public String generateToken(Map<String, Object> extraClaims, String subject) {
         final Date now = new Date();
         final Date expiry = new Date(now.getTime() + props.getExpiration());
 
-        // สำหรับ 0.11.5 ใช้ setClaims/setSubject/setIssuedAt/setExpiration
+        Map<String, Object> claims = new HashMap<>(extraClaims);
         return Jwts.builder()
-                .setClaims(new HashMap<>(extraClaims))      // หรือ .addClaims(...) ก็ได้
-                .setSubject(user.getUsername())
+                .setClaims(claims)
+                .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // ต้องระบุ algo
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -86,7 +87,16 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(props.getSecretKey());
-        return Keys.hmacShaKeyFor(keyBytes);
+        String secret = props.getSecretKey();
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT secret-key is missing. Set app.jwt.secret-key (Base64).");
+        }
+        try {
+            byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException e) {
+            // ตกมาใช้ raw bytes (ไม่แนะนำในโปรดักชัน แต่ช่วยกันพังตอน dev)
+            return Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 }

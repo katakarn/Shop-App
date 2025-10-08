@@ -1,5 +1,31 @@
-version: "3.8"
 services:
+#  shopapp-backend:
+#    image: shopapp-backend:latest # กำหนดชื่อ Image ที่จะใช้
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080" # Map port 8080 ภายนอก เข้าสู่ 8080 ภายใน Container
+#    environment:
+#      # การกำหนด Environment Variables ให้สอดคล้องกับ Dockerfile
+#      DB_HOST: postgres # ชื่อ service ของ database ในเครือข่าย Docker
+#      DB_NAME: shopapp_db
+#      DB_USER: shopuser
+#      DB_PASS: supersecretpassword
+#      # กำหนด JWT Secret Key ใน ENV Variable
+#      application.security.jwt.secret-key: a_super_long_and_secret_key_for_jwt_signing_which_must_be_at_least_256_bits_long
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopapp-postgres
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports: [ "5432:5432" ]
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -8,6 +34,10 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    volumes:
+      - zkdata:/var/lib/zookeeper/data
+      - zkdatalog:/var/lib/zookeeper/log
+      - zksecrets:/etc/zookeeper/secrets
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -27,6 +57,9 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    volumes:
+      - kafkadata:/var/lib/kafka/data
+      - kafkasecrets:/etc/kafka/secrets
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -36,3 +69,47 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local-kafka
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092 # เชื่อมต่อผ่านชื่อ Service ภายใน Docker
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports: [ "5540:5540" ]             # เปิด UI ที่ http://localhost:5540
+    volumes:
+      - redisinsight:/data           # เก็บ config/workspace ของ UI
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonarpass
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  pgdata:
+  zkdata:
+  zkdatalog:
+  kafkadata:
+  kafkasecrets:
+  zksecrets:
+  redisdata:
+  redisinsight:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

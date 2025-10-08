@@ -31,4 +31,6 @@ public class Order {
     private Double totalAmount; // ราคารวมทั้งหมด
 
     private LocalDateTime orderDate; // วันที่สั่งซื้อ
+
+    private String transactionId;
 }

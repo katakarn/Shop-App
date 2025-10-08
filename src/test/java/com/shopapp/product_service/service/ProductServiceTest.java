@@ -61,8 +61,8 @@ class ProductServiceTest {
         var found = productService.getProductResponseById(1L);
 
         // ตรวจสอบผลลัพธ์
-        assertTrue(found.isPresent());
-        assertEquals(1500.0, found.get().price());
+        assertNotNull(found);
+        assertEquals("Laptop Test", found.name());
     }
 
     @Test

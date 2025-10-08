@@ -35,10 +35,13 @@ public class ProductController {
     // สำหรับดึงสินค้าตาม ID
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        return productService
-                .getProductResponseById(id)
-                .map(ResponseEntity::ok) // ถ้าเจอสินค้า ให้ส่งโค้ด 200 OK
-                .orElse(ResponseEntity.notFound().build()); // ถ้าไม่เจอ ให้ส่งโค้ด 404 Not Found
+//        return productService
+//                .getProductResponseById(id)
+//                .map(ResponseEntity::ok) // ถ้าเจอสินค้า ให้ส่งโค้ด 200 OK
+//                .orElse(ResponseEntity.notFound().build()); // ถ้าไม่เจอ ให้ส่งโค้ด 404 Not Found
+        ProductResponse product = productService.getProductResponseById(id);
+//        return ResponseEntitTy.ok(product);
+        return new ResponseEntity<>(product, HttpStatus.OK);
     }
 
     // Endpoint: POST /api/v1/products
